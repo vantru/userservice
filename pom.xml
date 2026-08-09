@@ -30,6 +30,13 @@
 		<java.version>17</java.version>
 		<axon.version>4.10.3</axon.version>
 	</properties>
+	<!-- github package -->
+	<repositories>
+        <repository>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/vantru/grpc-contract</url>
+        </repository>
+    </repositories>
 	<dependencies>
 		<dependency>
 			<groupId>net.devh</groupId>
