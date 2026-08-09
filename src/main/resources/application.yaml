@@ -1,0 +1,10 @@
+server:
+  port: 8085
+
+grpc:
+  server:
+    port: 6565
+
+spring:
+  application:
+    name: UserService
