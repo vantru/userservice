@@ -7,17 +7,15 @@ COPY pom.xml .
 #RUN --mount=type=bind,source=.m2-cache,target=/root/.m2 mvn dependency:go-offline -
 COPY src ./src
 #copy file library by github package
-COPY settings.xml /root/.m2/m2_config.xml
+COPY settings.xml /root/.m2/abc_data.xml
 
 #RUN --mount=type=bind,source=.m2-cache,target=/root/.m2 mvn package -DskipTests -o
 #RUN mvn package -DskipTests
 # syntax=docker/dockerfile:1.7
 #run on github
-# RUN --mount=type=secret,id=maven_settings,target=/root/.m2/m2_config.xml \
-#     mvn clean package -s /root/.m2/m2_config.xml -DskipTests
+RUN --mount=type=secret,id=maven_settings,target=/root/.m2/abc_data.xml \
+    mvn clean package -s /root/.m2/abc_data.xml -DskipTests
 
-RUN --mount=type=secret,id=maven_settings,target=/root/.m2/m2_config.xml \
-head -c 100 /root/.m2/m2_config.xml
 # Stage 2: Run the application
 FROM eclipse-temurin:17-jre
 WORKDIR /app
