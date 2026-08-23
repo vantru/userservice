@@ -13,8 +13,11 @@ COPY settings.xml /root/.m2/m2_config.xml
 #RUN mvn package -DskipTests
 # syntax=docker/dockerfile:1.7
 #run on github
+# RUN --mount=type=secret,id=maven_settings,target=/root/.m2/m2_config.xml \
+#     mvn clean package -s /root/.m2/m2_config.xml -DskipTests
+
 RUN --mount=type=secret,id=maven_settings,target=/root/.m2/m2_config.xml \
-    mvn clean package -s /root/.m2/m2_config.xml -DskipTests
+head -c 100 /root/.m2/m2_config.xml
 # Stage 2: Run the application
 FROM eclipse-temurin:17-jre
 WORKDIR /app
