@@ -13,8 +13,10 @@ COPY settings.xml /root/.m2/abc_data.xml
 #RUN mvn package -DskipTests
 # syntax=docker/dockerfile:1.7
 #run on github
+# RUN --mount=type=secret,id=maven_settings,target=/root/.m2/abc_data.xml \
+#     mvn clean package -s /root/.m2/abc_data.xml -DskipTests
 RUN --mount=type=secret,id=maven_settings,target=/root/.m2/abc_data.xml \
-    mvn clean package -s /root/.m2/abc_data.xml -DskipTests
+    sh -c 'wc -c /root/.m2/abc_data.xml; head -c 300 /root/.m2/abc_data.xml; echo'
 
 # Stage 2: Run the application
 FROM eclipse-temurin:17-jre
