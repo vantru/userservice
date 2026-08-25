@@ -13,12 +13,12 @@ COPY src ./src
 #RUN mvn package -DskipTests
 # syntax=docker/dockerfile:1.7
 #run on github
-RUN --mount=type=secret,id=maven_settings,target=/root/.m2/settings.xml \
-    mvn clean package -DskipTests
+# RUN --mount=type=secret,id=maven_settings,target=/root/.m2/settings.xml \
+#     mvn clean package -DskipTests
 
     #for debug
-# RUN --mount=type=secret,id=maven_settings,target=/root/.m2/abc_data.xml \
-#     sh -c 'wc -c /root/.m2/abc_data.xml; head -c 300 /root/.m2/abc_data.xml; echo'
+RUN --mount=type=secret,id=maven_settings,target=/root/.m2/settings.xml \
+    sh -c 'wc -c /root/.m2/settings.xml; grep -o "<password>.\{0,10\}" /root/.m2/settings.xml'
 
 # Stage 2: Run the application
 FROM eclipse-temurin:17-jre
