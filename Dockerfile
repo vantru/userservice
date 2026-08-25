@@ -7,14 +7,14 @@ COPY pom.xml .
 #RUN --mount=type=bind,source=.m2-cache,target=/root/.m2 mvn dependency:go-offline -
 COPY src ./src
 #copy file library by github package
-COPY settings.xml /root/.m2/abc_data.xml
+#COPY settings.xml /root/.m2/settings.xml
 
 #RUN --mount=type=bind,source=.m2-cache,target=/root/.m2 mvn package -DskipTests -o
 #RUN mvn package -DskipTests
 # syntax=docker/dockerfile:1.7
 #run on github
-RUN --mount=type=secret,id=maven_settings,target=/root/.m2/abc_data.xml \
-    mvn clean package -s /root/.m2/abc_data.xml -DskipTests
+RUN --mount=type=secret,id=maven_settings,target=/root/.m2/settings.xml \
+    mvn clean package -DskipTests
 
     #for debug
 # RUN --mount=type=secret,id=maven_settings,target=/root/.m2/abc_data.xml \
