@@ -36,6 +36,10 @@
             <id>github</id>
             <url>https://maven.pkg.github.com/vantru/grpc-contract</url>
         </repository>
+		<repository>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/vantru/core</url>
+        </repository>
     </repositories>
 	<dependencies>
 		<dependency>
