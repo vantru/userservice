@@ -33,11 +33,11 @@
 	<!-- github package -->
 	<repositories>
         <repository>
-            <id>github</id>
+            <id>github-grpc</id>
             <url>https://maven.pkg.github.com/vantru/grpc-contract</url>
         </repository>
 		<repository>
-            <id>github</id>
+            <id>github-core</id>
             <url>https://maven.pkg.github.com/vantru/core</url>
         </repository>
     </repositories>
