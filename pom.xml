@@ -64,6 +64,16 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.axonframework</groupId>
+			<artifactId>axon-spring-boot-starter</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.axonframework</groupId>
+			<artifactId>axon-server-connector</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>com.trutran.estore</groupId>
 			<artifactId>core</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
@@ -77,7 +87,13 @@
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
-		
+			<dependency>
+				<groupId>org.axonframework</groupId>
+				<artifactId>axon-bom</artifactId>
+				<version>${axon.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 	<build>

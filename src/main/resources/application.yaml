@@ -5,6 +5,12 @@ grpc:
   server:
     port: 6565
 
+axon:
+  axonserver:
+    enabled: true
+    component-name: order-service
+    servers: ${AXONSERVER_URL}
+
 spring:
   application:
     name: UserService

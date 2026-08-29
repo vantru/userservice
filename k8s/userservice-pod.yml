@@ -51,6 +51,11 @@ spec:
                 name: postgres-cm
             - configMapRef:
                 name: axon-cm
+          envFrom:
+            - configMapRef:
+                name: postgres-cm
+            - configMapRef:
+                name: axon-cm
           env:
             - name: DATABASE_PASSWORD
               valueFrom:
