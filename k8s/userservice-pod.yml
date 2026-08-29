@@ -46,3 +46,14 @@ spec:
             successThreshold: 1
           ports:
             - containerPort: 8082
+          envFrom:
+            - configMapRef:
+                name: postgres-cm
+            - configMapRef:
+                name: axon-cm
+          env:
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: DATABASE_PASSWORD
