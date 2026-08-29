@@ -8,7 +8,7 @@ grpc:
 axon:
   axonserver:
     enabled: true
-    component-name: order-service
+    component-name: user-service
     servers: ${AXONSERVER_URL}
 
 spring:
