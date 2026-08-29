@@ -1,12 +1,13 @@
 package com.etore.userservice;
 
+import org.axonframework.springboot.autoconfig.AxonAutoConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Import;
 
 import com.trutran.estore.core.config.XStreamConfig;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = AxonAutoConfiguration.class)
 @Import(XStreamConfig.class)
 public class UserServiceApplication {
 
