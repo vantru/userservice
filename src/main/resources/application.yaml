@@ -9,7 +9,7 @@ axon:
   axonserver:
     enabled: true
     component-name: user-service
-    servers: ${AXONSERVER_URL}
+    servers: axonserver.axon.svc.cluster.local:8124
 
 spring:
   application:
