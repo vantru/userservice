@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: userservice
-          image: 'hardingtrutran/userservice:8891645'
+          image: 'hardingtrutran/userservice:b8d6e9c'
           resources:
             requests:
               memory: "512Mi"
