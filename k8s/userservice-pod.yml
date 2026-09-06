@@ -32,20 +32,20 @@ spec:
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
-              port: 8080
+              port: 8085
             initialDelaySeconds: 10
             periodSeconds: 5
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
-              port: 8080
+              port: 8085
             initialDelaySeconds: 30 # give the JVM/Spring context time to boot before checking
             periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 3 # 3 consecutive failures = pod killed and restarted
             successThreshold: 1
           ports:
-            - containerPort: 8082
+            - containerPort: 8085
           envFrom:
             - configMapRef:
                 name: postgres-cm
@@ -57,6 +57,8 @@ spec:
             - configMapRef:
                 name: axon-cm
           env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: staging
             - name: DATABASE_PASSWORD
               valueFrom:
                 secretKeyRef:

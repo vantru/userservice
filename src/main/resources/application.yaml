@@ -1,3 +1,28 @@
+# server:
+#   port: 8085
+
+# grpc:
+#   server:
+#     port: 6565
+
+# axon:
+#   axonserver:
+#     enabled: true
+#     component-name: user-service
+#     servers: axonserver.axon.svc.cluster.local:8124
+
+# spring:
+#   application:
+#     name: UserService
+
+---
+spring:
+  application:
+    name: UserService
+  config:
+    activate:
+      on-profile:
+      - development
 server:
   port: 8085
 
@@ -8,9 +33,36 @@ grpc:
 axon:
   axonserver:
     enabled: true
-    component-name: user-service
-    servers: axonserver.axon.svc.cluster.local:8124
+    component-name: user-service-dev
+    servers: localhost:8124
 
+logging:
+  level:
+
+  
+    root: DEBUG
+    '[org.axonframework]': DEBUG
+
+---
 spring:
   application:
     name: UserService
+  config:
+    activate:
+      on-profile:
+      - staging
+server:
+  port: 8085
+grpc:
+  server:
+    port: 6565
+
+axon:
+  axonserver:
+    enabled: true
+    component-name: user-server-staging
+    servers: ${AXONSERVER_URL}
+logging:
+  level:
+    root: INFO
+    '[org.axonframework]': INFO
