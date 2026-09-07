@@ -51,6 +51,7 @@ spring:
     activate:
       on-profile:
       - staging
+      
 server:
   port: 8085
 grpc:
