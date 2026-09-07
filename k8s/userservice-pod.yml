@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: userservice
-          image: 'hardingtrutran/userservice:5621801'
+          image: 'hardingtrutran/userservice:2ad8154'
           resources:
             requests:
               memory: "512Mi"
@@ -70,3 +70,7 @@ spec:
   ports:
     - port: 80
       targetPort: 8085
+  template:
+    spec:
+      containers:
+        - image: hardingtrutran/userservice:2ad8154
