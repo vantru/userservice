@@ -5,7 +5,7 @@ metadata:
   labels:
     app: userservice
 spec:
-  replicas: 3
+  replicas: 1
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -46,11 +46,6 @@ spec:
           #   successThreshold: 1
           ports:
             - containerPort: 8085
-          envFrom:
-            - configMapRef:
-                name: postgres-cm
-            - configMapRef:
-                name: axon-cm
           envFrom:
             - configMapRef:
                 name: postgres-cm

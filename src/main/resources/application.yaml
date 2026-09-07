@@ -60,7 +60,7 @@ grpc:
 axon:
   axonserver:
     enabled: true
-    component-name: user-server-staging
+    component-name: userservice-staging
     servers: ${AXONSERVER_URL}
 logging:
   level:
