@@ -70,7 +70,3 @@ spec:
   ports:
     - port: 80
       targetPort: 8085
-  template:
-    spec:
-      containers:
-        - image: hardingtrutran/userservice:7f1615c
