@@ -32,7 +32,7 @@ jobs:
         - name: update kubernetes manifest
           run: |
             FILE=./k8s/userservice-pod.yml
-            yq -i '(select(kind == "Deployment") | .spec.template.spec.containers[0].image) = "${{ secrets.DOCKER_USERNAME }}/userservice:${{ needs.call-build.outputs.short_sha }}"' "$FILE"
+            yq -i '(select(.kind == "Deployment") | .spec.template.spec.containers[0].image) = "${{ secrets.DOCKER_USERNAME }}/userservice:${{ needs.call-build.outputs.short_sha }}"' "$FILE"
 
         - name: commit deployment userservice file change
           run: |
