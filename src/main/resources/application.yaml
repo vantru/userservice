@@ -60,6 +60,7 @@ grpc:
 
 axon:
   axonserver:
+    context: default
     enabled: true
     component-name: userservice-staging
     servers: ${AXONSERVER_URL}
