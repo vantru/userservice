@@ -1,5 +1,11 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'amazon/aws-cli:latest'
+            // Đảm bảo container này có quyền truy cập vào Docker socket của máy host để build image
+            args '-v /var/run/docker.sock:/var/run/docker.sock --entrypoint='
+        }
+    }
     parameters {
         // These replace your workflow inputs
         string(name: 'IMAGE_NAME', defaultValue: 'userservice', description: 'Name of the Docker image')
