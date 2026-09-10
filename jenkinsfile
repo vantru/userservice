@@ -32,17 +32,25 @@ pipeline {
 
         stage('Prepare Settings & ECR') {
             steps {
-                sh '''
-                    # Thay thế chuỗi ${GH_TOKEN} hoặc $GH_TOKEN trong tệp template bằng giá trị thực tế
-                    sed "s|\\\${GH_TOKEN}|${GH_TOKEN}|g; s|\$GH_TOKEN|${GH_TOKEN}|g" .github/ci/settings.xml.template > settings.xml
+                script {
+                    // Đọc nội dung tệp template bằng công cụ của Jenkins
+                    def template = readFile ".github/ci/settings.xml.template"
                     
-                    aws ecr create-repository \
-                        --repository-name "${params.IMAGE_NAME}" \
-                        --endpoint-url "$AWS_ENDPOINT_URL" || true
-                '''
+                    // Thực hiện thay thế chuỗi ký tự trực tiếp trong bộ nhớ
+                    def parsedSettings = template.replace('${GH_TOKEN}', env.GH_TOKEN).replace('$GH_TOKEN', env.GH_TOKEN)
+                    
+                    // Ghi đè ra tệp settings.xml mới
+                    writeFile file: "settings.xml", text: parsedSettings
+                    
+                    // Chạy lệnh khởi tạo ECR thông thường
+                    sh """
+                        aws ecr create-repository \
+                            --repository-name "${params.IMAGE_NAME}" \
+                            --endpoint-url "\$AWS_ENDPOINT_URL" || true
+                    """
+                }
             }
         }
-
 
         stage('Docker Login & Build') {
             steps {
