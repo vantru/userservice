@@ -32,9 +32,9 @@ pipeline {
 
         stage('Prepare Settings & ECR') {
             steps {
-                // Generates maven settings.xml and verifies ECR repository
                 sh '''
-                    envsubst < .github/ci/settings.xml.template > settings.xml
+                    # Thay thế chuỗi ${GH_TOKEN} hoặc $GH_TOKEN trong tệp template bằng giá trị thực tế
+                    sed "s|\\\${GH_TOKEN}|${GH_TOKEN}|g; s|\$GH_TOKEN|${GH_TOKEN}|g" .github/ci/settings.xml.template > settings.xml
                     
                     aws ecr create-repository \
                         --repository-name "${params.IMAGE_NAME}" \
@@ -42,6 +42,7 @@ pipeline {
                 '''
             }
         }
+
 
         stage('Docker Login & Build') {
             steps {
