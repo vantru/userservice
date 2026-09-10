@@ -1,0 +1,95 @@
+pipeline {
+    parameters {
+        // These replace your workflow inputs
+        string(name: 'IMAGE_NAME', defaultValue: 'userservice', description: 'Name of the Docker image')
+        string(name: 'CONTEXT', defaultValue: '.', description: 'Docker build context')
+        string(name: 'AWS_REGION', defaultValue: 'us-east-1', description: 'AWS Default Region')
+        string(name: 'FLOCI_ENDPOINT', defaultValue: 'http://localhost:4566', description: 'Local AWS/Floci Endpoint')
+        string(name: 'ECR_REGISTRY', defaultValue: '000000000000.dkr.ecr.us-east-1.localhost:5100', description: 'Target Registry')
+    }
+
+    environment {
+        // Fetches your secret token safely from Jenkins credentials
+        GH_TOKEN = credentials('gh-packages-token')
+        // Automatically creates a short 7-character git commit hash
+        SHORT_SHA = "${GIT_COMMIT[0..6]}" 
+        
+        // Mock AWS environmental variables used by aws-cli
+        AWS_ENDPOINT_URL = "${params.FLOCI_ENDPOINT}"
+        AWS_ACCESS_KEY_ID = "test"
+        AWS_SECRET_ACCESS_KEY = "test"
+        AWS_DEFAULT_REGION = "${params.AWS_REGION}"
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                // Checkout code using Jenkins git setup (inherits credentials)
+                checkout scm
+            }
+        }
+
+        stage('Prepare Settings & ECR') {
+            steps {
+                // Generates maven settings.xml and verifies ECR repository
+                sh '''
+                    envsubst < .github/ci/settings.xml.template > settings.xml
+                    
+                    aws ecr create-repository \
+                        --repository-name "${params.IMAGE_NAME}" \
+                        --endpoint-url "$AWS_ENDPOINT_URL" || true
+                '''
+            }
+        }
+
+        stage('Docker Login & Build') {
+            steps {
+                // Replaces setup-buildx-action & build-push-action with local cache optimizations
+                sh '''
+                    aws ecr get-login-password --endpoint-url "$AWS_ENDPOINT_URL" \
+                        | docker login --username AWS --password-stdin "${params.ECR_REGISTRY}"
+                    
+                    # Using BuildKit (Buildx equivalent) built into standard docker
+                    DOCKER_BUILDKIT=1 docker build \
+                        --secret id=maven_settings,src=settings.xml \
+                        -t "${params.ECR_REGISTRY}/${params.IMAGE_NAME}:${SHORT_SHA}" \
+                        "${params.CONTEXT}"
+                        
+                    docker push "${params.ECR_REGISTRY}/${params.IMAGE_NAME}:${SHORT_SHA}"
+                '''
+            }
+        }
+
+        stage('Update Kubernetes Manifest') {
+            when {
+                // Only run on main branch or manually triggered workflow dispatch equivalents
+                expression { env.BRANCH_NAME == 'main' || env.BUILD_CAUSE == 'MANUALTRIGGER' }
+            }
+            steps {
+                // Installs/runs yq, edits file, and pushes back using Jenkins git context
+                sh '''
+                    FILE="./k8s/userservice-pod.yml"
+                    
+                    # Edit deployment template image tag
+                    yq -i '(select(.kind == "Deployment") | .spec.template.spec.containers[0].image) = "'"${params.ECR_REGISTRY}/${params.IMAGE_NAME}:${SHORT_SHA}"'"' "$FILE"
+                    
+                    # Commit and push changes back
+                    git config user.email "vantruit@gmail.com"
+                    git config user.name "vantru"
+                    git add k8s/userservice-pod.yml
+                    git commit -m "change tag sha [skip ci]" || echo "No changes to commit"
+                    
+                    # Assuming your Jenkins Git block setup allows pushing or using ssh keys
+                    git push origin HEAD:main
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            // Clean up secrets as requested in your trailing command snippet
+            sh 'rm -f settings.xml'
+        }
+    }
+}
