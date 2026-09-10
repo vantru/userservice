@@ -1,11 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'amazon/aws-cli:latest'
-            // Đảm bảo container này có quyền truy cập vào Docker socket của máy host để build image
-            args '-v /var/run/docker.sock:/var/run/docker.sock --entrypoint='
-        }
-    }
+    agent any
     parameters {
         // These replace your workflow inputs
         string(name: 'IMAGE_NAME', defaultValue: 'userservice', description: 'Name of the Docker image')
@@ -48,12 +42,12 @@ pipeline {
                     // Ghi đè ra tệp settings.xml mới
                     writeFile file: "settings.xml", text: parsedSettings
                     
-                    // Chạy lệnh khởi tạo ECR thông thường
-                    sh """
-                        aws ecr create-repository \
-                            --repository-name "${params.IMAGE_NAME}" \
-                            --endpoint-url "\$AWS_ENDPOINT_URL" || true
-                    """
+                    // // Chạy lệnh khởi tạo ECR thông thường
+                    // sh """
+                    //     aws ecr create-repository \
+                    //         --repository-name "${params.IMAGE_NAME}" \
+                    //         --endpoint-url "\$AWS_ENDPOINT_URL" || true
+                    // """
                 }
             }
         }
@@ -61,10 +55,9 @@ pipeline {
         stage('Docker Login & Build') {
             steps {
                 // Replaces setup-buildx-action & build-push-action with local cache optimizations
+                   // aws ecr get-login-password --endpoint-url "$AWS_ENDPOINT_URL" \
+                    //     | docker login --username AWS --password-stdin "${params.ECR_REGISTRY}"
                 sh '''
-                    aws ecr get-login-password --endpoint-url "$AWS_ENDPOINT_URL" \
-                        | docker login --username AWS --password-stdin "${params.ECR_REGISTRY}"
-                    
                     # Using BuildKit (Buildx equivalent) built into standard docker
                     DOCKER_BUILDKIT=1 docker build \
                         --secret id=maven_settings,src=settings.xml \
