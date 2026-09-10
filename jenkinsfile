@@ -10,16 +10,18 @@ pipeline {
     }
 
     environment {
-        // Fetches your secret token safely from Jenkins credentials
         GH_TOKEN = credentials('gh-packages-token')
-        // Automatically creates a short 7-character git commit hash
-        SHORT_SHA = "${GIT_COMMIT[0..6]}" 
-        
-        // Mock AWS environmental variables used by aws-cli
+        SHORT_SHA = "${GIT_COMMIT[0..6]}"
+
         AWS_ENDPOINT_URL = "${params.FLOCI_ENDPOINT}"
         AWS_ACCESS_KEY_ID = "test"
         AWS_SECRET_ACCESS_KEY = "test"
         AWS_DEFAULT_REGION = "${params.AWS_REGION}"
+
+        // add these
+        IMAGE_NAME   = "${params.IMAGE_NAME}"
+        CONTEXT      = "${params.CONTEXT}"
+        ECR_REGISTRY = "${params.ECR_REGISTRY}"
     }
 
     stages {
@@ -52,43 +54,50 @@ pipeline {
             }
         }
 
+        // stage('Docker Login & Build') {
+        //     steps {
+        //         // Replaces setup-buildx-action & build-push-action with local cache optimizations
+        //            // aws ecr get-login-password --endpoint-url "$AWS_ENDPOINT_URL" \
+        //             //     | docker login --username AWS --password-stdin "${params.ECR_REGISTRY}"
+        //         sh '''
+        //             # Using BuildKit (Buildx equivalent) built into standard docker
+        //             DOCKER_BUILDKIT=1 docker build \
+        //                 --secret id=maven_settings,src=settings.xml \
+        //                 -t "${params.ECR_REGISTRY}/${params.IMAGE_NAME}:${SHORT_SHA}" \
+        //                 "${params.CONTEXT}"
+                        
+        //             docker push "${params.ECR_REGISTRY}/${params.IMAGE_NAME}:${SHORT_SHA}"
+        //         '''
+        //     }
+        // }
+
         stage('Docker Login & Build') {
             steps {
-                // Replaces setup-buildx-action & build-push-action with local cache optimizations
-                   // aws ecr get-login-password --endpoint-url "$AWS_ENDPOINT_URL" \
-                    //     | docker login --username AWS --password-stdin "${params.ECR_REGISTRY}"
                 sh '''
-                    # Using BuildKit (Buildx equivalent) built into standard docker
                     DOCKER_BUILDKIT=1 docker build \
                         --secret id=maven_settings,src=settings.xml \
-                        -t "${params.ECR_REGISTRY}/${params.IMAGE_NAME}:${SHORT_SHA}" \
-                        "${params.CONTEXT}"
-                        
-                    docker push "${params.ECR_REGISTRY}/${params.IMAGE_NAME}:${SHORT_SHA}"
+                        -t "$ECR_REGISTRY/$IMAGE_NAME:$SHORT_SHA" \
+                        "$CONTEXT"
+
+                    docker push "$ECR_REGISTRY/$IMAGE_NAME:$SHORT_SHA"
                 '''
             }
         }
 
         stage('Update Kubernetes Manifest') {
             when {
-                // Only run on main branch or manually triggered workflow dispatch equivalents
                 expression { env.BRANCH_NAME == 'main' || env.BUILD_CAUSE == 'MANUALTRIGGER' }
             }
             steps {
-                // Installs/runs yq, edits file, and pushes back using Jenkins git context
                 sh '''
                     FILE="./k8s/userservice-pod.yml"
-                    
-                    # Edit deployment template image tag
-                    yq -i '(select(.kind == "Deployment") | .spec.template.spec.containers[0].image) = "'"${params.ECR_REGISTRY}/${params.IMAGE_NAME}:${SHORT_SHA}"'"' "$FILE"
-                    
-                    # Commit and push changes back
+
+                    yq -i '(select(.kind == "Deployment") | .spec.template.spec.containers[0].image) = "'"$ECR_REGISTRY/$IMAGE_NAME:$SHORT_SHA"'"' "$FILE"
+
                     git config user.email "vantruit@gmail.com"
                     git config user.name "vantru"
                     git add k8s/userservice-pod.yml
                     git commit -m "change tag sha [skip ci]" || echo "No changes to commit"
-                    
-                    # Assuming your Jenkins Git block setup allows pushing or using ssh keys
                     git push origin HEAD:main
                 '''
             }
