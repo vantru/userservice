@@ -81,15 +81,23 @@ pipeline {
             }
         }
 
+        stage('Push to ECR') {
+            steps {
+                powershell '''
+                    docker push $env.ECR_REGISTRY/$IMAGE_NAME:$env.SHORT_SHA
+                '''
+            }
+        }
+
         stage('Update Kubernetes Manifest') {
             when {
                 expression { env.BRANCH_NAME == 'main' || env.BUILD_CAUSE == 'MANUALTRIGGER' }
             }
             steps {
-                sh '''
+                powershell '''
                     FILE="./k8s/userservice-pod.yml"
 
-                    yq -i '(select(.kind == "Deployment") | .spec.template.spec.containers[0].image) = "'"$ECR_REGISTRY/$IMAGE_NAME:$SHORT_SHA"'"' "$FILE"
+                    yq -i '(select(.kind == "Deployment") | .spec.template.spec.containers[0].image) = "'"$env.ECR_REGISTRY/$IMAGE_NAME:$env.SHORT_SHA"'"' "$FILE"
 
                     git config user.email "vantruit@gmail.com"
                     git config user.name "vantru"
