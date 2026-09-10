@@ -10,7 +10,7 @@ permissions:
   contents: write
 jobs:
   call-build:
-    uses: vantru/shared-workflows/.github/workflows/docker-build-to-ecr.yml@main
+    uses: vantru/shared-workflows/.github/workflows/docker-build.yml@main
     with:
       image_name: userservice
       context: .
