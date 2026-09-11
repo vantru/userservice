@@ -8,25 +8,25 @@ pipeline {
         name: jenkins-dind-build-pod
         spec:
         containers:
-            - name: maven-builder
+          - name: maven-builder
             image: maven:3.9.6-eclipse-temurin-17
             command: ["cat"]
             tty: true
 
-            - name: app-container
+          - name: app-container
             image: docker:latest
             command: ["cat"]
             tty: true
             env:
-                - name: DOCKER_HOST
+              - name: DOCKER_HOST
                 value: tcp://localhost:2375
 
-            - name: dind-daemon
+          - name: dind-daemon
             image: docker:dind
             securityContext:
                 privileged: true
             env:
-                - name: DOCKER_TLS_CERTDIR
+              - name: DOCKER_TLS_CERTDIR
                 value: ""
         '''
                 }
