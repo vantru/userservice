@@ -73,16 +73,19 @@ pipeline {
 
         stage('Docker Login & Build') {
             steps {
-                powershell '''
-                    DOCKER_BUILDKIT=1 docker build -t $env.ECR_REGISTRY/$IMAGE_NAME:$env.SHORT_SHA --secret id=maven_settings,src=settings.xml .
+                sh '''
+                    DOCKER_BUILDKIT=1 docker build \
+                        -t "${ECR_REGISTRY}/${IMAGE_NAME}:${SHORT_SHA}" \
+                        --secret id=maven_settings,src=settings.xml \
+                        "${CONTEXT}"
                 '''
             }
         }
 
         stage('Push to ECR') {
             steps {
-                powershell '''
-                    docker push $env.ECR_REGISTRY/$IMAGE_NAME:$env.SHORT_SHA
+                sh '''
+                    docker push "${ECR_REGISTRY}/${IMAGE_NAME}:${SHORT_SHA}"
                 '''
             }
         }
@@ -92,10 +95,10 @@ pipeline {
                 expression { env.BRANCH_NAME == 'main' || env.BUILD_CAUSE == 'MANUALTRIGGER' }
             }
             steps {
-                powershell '''
+                sh '''
                     FILE="./k8s/userservice-pod.yml"
 
-                    yq -i '(select(.kind == "Deployment") | .spec.template.spec.containers[0].image) = "'"$env.ECR_REGISTRY/$IMAGE_NAME:$env.SHORT_SHA"'"' "$FILE"
+                    yq -i ".spec.template.spec.containers[0].image = \"${ECR_REGISTRY}/${IMAGE_NAME}:${SHORT_SHA}\"" "$FILE"
 
                     git config user.email "vantruit@gmail.com"
                     git config user.name "vantru"
