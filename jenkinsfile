@@ -13,8 +13,8 @@ pipeline {
             command: ["cat"]
             tty: true
 
-          - name: app-container
-            image: docker:latest
+          - name: docker
+            image: docker:27-cli
             command: ["cat"]
             tty: true
             env:
@@ -115,7 +115,7 @@ pipeline {
         // }
         stage('Docker Login & Build') {
             steps {
-                container('jnlp'){
+                container('docker'){
                     sh '''
                         DOCKER_BUILDKIT=1 docker build \
                             -t "${ECR_REGISTRY}/${IMAGE_NAME}:${SHORT_SHA}" \
