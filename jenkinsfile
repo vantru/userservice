@@ -83,12 +83,14 @@ pipeline {
         }
         stage('Docker Login & Build') {
             steps {
-                sh '''
-                    DOCKER_BUILDKIT=1 docker build \
-                        -t "${ECR_REGISTRY}/${IMAGE_NAME}:${SHORT_SHA}" \
-                        --secret id=maven_settings,src=settings.xml \
-                        "${CONTEXT}"
-                '''
+                container('docker'){
+                    sh '''
+                        DOCKER_BUILDKIT=1 docker build \
+                            -t "${ECR_REGISTRY}/${IMAGE_NAME}:${SHORT_SHA}" \
+                            --secret id=maven_settings,src=settings.xml \
+                            "${CONTEXT}"
+                    '''
+                }
             }
         }
 
