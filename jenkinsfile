@@ -1,5 +1,7 @@
 pipeline {
-    agent any
+    agent {
+        docker { image 'node:24.21.0-alpine3.24' }
+    }
     parameters {
         // These replace your workflow inputs
         string(name: 'IMAGE_NAME', defaultValue: 'userservice', description: 'Name of the Docker image')
