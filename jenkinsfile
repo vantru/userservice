@@ -29,6 +29,7 @@ pipeline {
               - name: DOCKER_TLS_CERTDIR
                 value: ""
         '''
+        podRetention onFailure()
                 }
             }
             
