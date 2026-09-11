@@ -31,26 +31,7 @@ pipeline {
         '''
                 }
             }
-            stages {
-                stage('Build') {
-                    steps {
-                        container('maven-builder') {
-                            sh 'mvn -version'
-                        }
-                        container('app-container') {
-                            sh 'docker version'
-                        }
-                    }
-                }
-            }
-            post {
-                always {
-                    container('maven-builder') {
-                        sh 'echo cleanup'
-                    }
-                }
-            }
-                
+            
     parameters {
         // These replace your workflow inputs
         string(name: 'IMAGE_NAME', defaultValue: 'userservice', description: 'Name of the Docker image')
