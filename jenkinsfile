@@ -1,40 +1,55 @@
 pipeline {
     agent {
         kubernetes {
-            // Định nghĩa cấu hình Pod trực tiếp bằng cú pháp YAML của bạn
             yaml '''
-            apiVersion: v1
-            kind: Pod
-            metadata:
-            name: jenkins-dind-build-pod
-            spec:
-            containers:
-            # 1. Container Tool: Dùng để build mã nguồn (Ví dụ ở đây là Maven cho Java)
+        apiVersion: v1
+        kind: Pod
+        metadata:
+        name: jenkins-dind-build-pod
+        spec:
+        containers:
             - name: maven-builder
-                image: maven:3.9.6-eclipse-temurin-17
-                command: ["cat"]
-                tty: true
+            image: maven:3.9.6-eclipse-temurin-17
+            command: ["cat"]
+            tty: true
 
-            # 2. Container App: Chứa Docker CLI để chạy lệnh build/push image
             - name: app-container
-                image: docker:latest
-                command: ["cat"]
-                tty: true
-                env:
+            image: docker:latest
+            command: ["cat"]
+            tty: true
+            env:
                 - name: DOCKER_HOST
                 value: tcp://localhost:2375
 
-            # 3. Container Sidecar: Docker Daemon chạy ngầm xử lý việc build
             - name: dind-daemon
-                image: docker:dind
-                env:
+            image: docker:dind
+            securityContext:
+                privileged: true
+            env:
                 - name: DOCKER_TLS_CERTDIR
                 value: ""
-                securityContext:
-                privileged: true
-            '''
+        '''
+                }
+            }
+            stages {
+                stage('Build') {
+                    steps {
+                        container('maven-builder') {
+                            sh 'mvn -version'
+                        }
+                        container('app-container') {
+                            sh 'docker version'
+                        }
                     }
-    }
+                }
+            }
+            post {
+                always {
+                    container('maven-builder') {
+                        sh 'echo cleanup'
+                    }
+                }
+            }
                 
     parameters {
         // These replace your workflow inputs
