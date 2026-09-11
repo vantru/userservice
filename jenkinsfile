@@ -115,7 +115,7 @@ pipeline {
         // }
         stage('Docker Login & Build') {
             steps {
-                container('app-container'){
+                container('jnlp'){
                     sh '''
                         DOCKER_BUILDKIT=1 docker build \
                             -t "${ECR_REGISTRY}/${IMAGE_NAME}:${SHORT_SHA}" \
@@ -130,7 +130,7 @@ pipeline {
 
         stage('Push to ECR') {
             steps {
-                container('app-container'){
+                container('jnlp'){
                     sh '''
                         docker push "${ECR_REGISTRY}/${IMAGE_NAME}:${SHORT_SHA}"
                     '''
