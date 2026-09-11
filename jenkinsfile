@@ -1,7 +1,41 @@
 pipeline {
     agent {
-        docker { image 'node:24.21.0-alpine3.24' }
+        kubernetes {
+            // Định nghĩa cấu hình Pod trực tiếp bằng cú pháp YAML của bạn
+            yaml '''
+            apiVersion: v1
+            kind: Pod
+            metadata:
+            name: jenkins-dind-build-pod
+            spec:
+            containers:
+            # 1. Container Tool: Dùng để build mã nguồn (Ví dụ ở đây là Maven cho Java)
+            - name: maven-builder
+                image: maven:3.9.6-eclipse-temurin-17
+                command: ["cat"]
+                tty: true
+
+            # 2. Container App: Chứa Docker CLI để chạy lệnh build/push image
+            - name: app-container
+                image: docker:latest
+                command: ["cat"]
+                tty: true
+                env:
+                - name: DOCKER_HOST
+                value: tcp://localhost:2375
+
+            # 3. Container Sidecar: Docker Daemon chạy ngầm xử lý việc build
+            - name: dind-daemon
+                image: docker:dind
+                env:
+                - name: DOCKER_TLS_CERTDIR
+                value: ""
+                securityContext:
+                privileged: true
+            '''
+                    }
     }
+                
     parameters {
         // These replace your workflow inputs
         string(name: 'IMAGE_NAME', defaultValue: 'userservice', description: 'Name of the Docker image')
@@ -72,35 +106,40 @@ pipeline {
         //         '''
         //     }
         // }
-        stage('Check Docker') {
-            steps {
-                sh '''
-                    echo "PATH=$PATH"
-                    whoami
-                    which docker || true
-                    docker --version || true
-                    ls -l /var/run/docker.sock || true
-                '''
-            }
-        }
+        // stage('Check Docker') {
+        //     steps {
+        //         sh '''
+        //             echo "PATH=$PATH"
+        //             whoami
+        //             which docker || true
+        //             docker --version || true
+        //             ls -l /var/run/docker.sock || true
+        //         '''
+        //     }
+        // }
         stage('Docker Login & Build') {
             steps {
-                container('docker'){
+                container('app-container'){
                     sh '''
                         DOCKER_BUILDKIT=1 docker build \
                             -t "${ECR_REGISTRY}/${IMAGE_NAME}:${SHORT_SHA}" \
                             --secret id=maven_settings,src=settings.xml \
                             "${CONTEXT}"
                     '''
+                    //check image already exists
+                    sh 'docker images'
                 }
             }
         }
 
         stage('Push to ECR') {
             steps {
-                sh '''
-                    docker push "${ECR_REGISTRY}/${IMAGE_NAME}:${SHORT_SHA}"
-                '''
+                container('app-container'){
+                    sh '''
+                        docker push "${ECR_REGISTRY}/${IMAGE_NAME}:${SHORT_SHA}"
+                    '''
+                }
+                
             }
         }
 
